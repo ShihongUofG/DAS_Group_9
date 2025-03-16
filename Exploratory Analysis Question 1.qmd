@@ -1,0 +1,80 @@
+---
+title: "Project 1 Obesity Prevalence"
+author: "Shihong"
+execute: 
+  echo: false
+  eval: true
+number-sections: true
+format:
+  html:
+    embed-resources: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+library(ggplot2)
+library(tidyverse)
+library(tidymodels)
+library(gt)
+library(MASS)
+library(patchwork)
+library(moderndive)
+
+```
+
+# Introduction {#sec-intro}
+
+Obesity is a significant public health concern that affects morbidity and mortality. Monitoring its prevalence is essential for evaluating public health policies and interventions. The Scottish Health Survey, which samples individuals from private households across Scotland, provides an opportunity to study trends in obesity. The primary goal of this analysis is to determine whether there has been a statistically noticeable change in obesity prevalence in Scotland over the period 2008–2012.
+
+# Exploratory Analysis {#sec-EA}
+
+The prevalence of obesity for each year was computed using the formula:
+
+$$
+\text{Prevalence (in %)} = \frac{N_{\text{obese}}}{N_{\text{total}}} \times 100
+$$
+
+First we will produce a line plot with data points to illustrate the trend in obesity prevalence over the years.
+
+```{r}
+data <- read.csv("DAProject1.csv")
+
+data$Year <- as.factor(data$Year)
+
+prevalence <- data %>%
+  group_by(Year) %>%
+  summarise(total = n(),
+            obese_count = sum(Obese == "Yes"),
+            prevalence = (obese_count / total) * 100)
+
+ggplot(prevalence, aes(x = Year, y = prevalence)) +
+  geom_line(group = 1, color = "black") +
+  geom_point(size = 3, color = "red") +
+  labs(title = "Obesity Prevalence Over Time in Scotland",
+       x = "Year",
+       y = "Prevalence (in %)")
+```
+
+From the graph we can see that the prevalence appears to fluctuate year to year, rather than moving in a strictly upward or downward path. This suggests that obesity rates may have been influenced by a range of factors that vary from year to year (e.g., sample composition, lifestyle changes, policy impacts).
+
+Also we will produce a bar plot to display the count of individuals classified as obese versus not obese for each survey year.
+
+```{r}
+ggplot(data, aes(x = Year, fill = Obese)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Count of Obesity Classification by Year",
+       x = "Year",
+       y = "Count") 
+```
+
+We can observe that in each year, the “No” bar (non-obese) is taller than the “Yes” bar (obese). However, the gap between these two bars may differ slightly from year to year.
+
+# Formal Analysis {#sec-FA}
+
+
+
+# Conclusions {#sec-con}
