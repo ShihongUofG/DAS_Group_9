@@ -16,6 +16,7 @@ editor_options:
 #| echo: false
 #| warning: false
 #| message: false
+
 library(ggplot2)
 library(tidyverse)
 library(tidymodels)
@@ -29,7 +30,7 @@ library(sjPlot)
 
 # Introduction {#sec-intro}
 
-Obesity is a significant public health concern that affects morbidity and mortality. Monitoring its prevalence is essential for evaluating public health policies and interventions. The Scottish Health Survey, which samples individuals from private households across Scotland, provides an opportunity to study trends in obesity. The primary goal of this analysis is to determine whether there has been a statistically noticeable change in obesity prevalence in Scotland over the period 2008–2012.
+Obesity is a significant public health concern that affects morbidity and mortality. Monitoring its prevalence is essential for evaluating public health policies and interventions. The Scottish Health Survey, which samples individuals from private households across Scotland, provides an opportunity to study trends in obesity. The primary goal of this analysis is to determine whether there has been a statistically noticeable change in obesity prevalence in Scotland over the period 2008–2012. The secondary goal of this analysis is to assess whether there is a difference in obesity levels in other variables recorded in the Scottish Health Survey between 2008 and 2012.
 
 # Exploratory Analysis {#sec-EA}
 
@@ -77,11 +78,6 @@ ggplot(data, aes(x = Year, fill = Obese)) +
 ```
 
 We can observe that in each year, the “No” bar (non-obese) is taller than the “Yes” bar (obese). However, the gap between these two bars may differ slightly from year to year.
-
-
-
-
-# Formal Analysis {#sec-FA}
 
 ## Differences in Obesity Through The Years
 
