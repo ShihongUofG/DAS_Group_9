@@ -234,7 +234,8 @@ lines(x = 1 - roc_model_1$sensitivity, y = roc_model_1$specificity,
 abline(a = 0, b = 1)
 abline(v = c(0.464, 0.269))
 
-
+roc_model_1 %>%
+  filter(youden_j == max(youden_j))
 
 
 #conf_mat(model_pred_0.5, truth = Obese, estimate = predicted_class) no 'yes' predicted
@@ -257,3 +258,7 @@ eval_metric(model_pred_0.464,
 ?check_model()
 
 print("Hello world")
+
+
+#realign latex code
+#add hyperlinks

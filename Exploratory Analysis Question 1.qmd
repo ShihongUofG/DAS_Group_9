@@ -131,7 +131,7 @@ We can attempt to fit a logistic regression model to the data set. With the `ste
 
 ```{r}
 #| echo: false
-#| eval: true
+#| eval: false
 #| message: false
 
 model_Full <- glm(Obese~., family = "binomial", data = data)
@@ -146,6 +146,10 @@ print(model_1$formula)
 From this, we see that one potential model fit would be to include the variables Age, Education, and Veg in our GLM. We can also use the `regsubsets` function from the `leaps` package, specifying that evaluations are to be carried out with the Mallow's CP criterion
 
 ```{r}
+model_1 <- glm(Obese ~ Age + Education + Veg,
+               family = binomial,
+               data = data)
+
 models <- leaps::regsubsets(Obese ~ . , data = data)
 plot(models, scale = "Cp")
 ```
@@ -190,7 +194,7 @@ From this, we see that our model predicts that a one year increase (all other va
 
 We note that none of the 95% confidence intervals of our chosen predictors contain 1, which is a positive indicator of the predictors' significance.
 
-We can examine our model's predictive performance by first examining the below plots of predicted obesity probabilities against each explanatory variable.
+We can examine our model's predictive performance by first examining the below plots of predicted obesity probabilities against each explanatory variable, as seen in @fig-diff-pred-plot.
 
 ```{r}
 #| label: fig-diff-pred-plot
@@ -220,9 +224,11 @@ gridExtra::grid.arrange(pred_plot_age,
                         pred_plot_veg,
                         ncol = 3, nrow = 1)
 
+#nrow(data[data$Obese == "Yes",]) / nrow(data)
+
 ```
 
-We first note that our findings from the model output table are confirmed here. However, we also can note that our model seems hesitant to assign a probability greater than 0.5 to any observation in our data set. To expand on this, we first can check our model assumptions via the `performance` library.
+We first note that our findings from the model output table relating to trends in odds / probabilities for each variable are confirmed here. However, we also can note that our model seems hesitant to assign a probability greater than 0.5 to any observation in our data set. To expand on this, we first can check our model assumptions via the `performance` library.
 
 ```{r}
 #| label: fig-diff-asump-plot
@@ -233,7 +239,7 @@ We first note that our findings from the model output table are confirmed here. 
 performance::check_model(model_1, panel = T)
 ```
 
-From this output, we see that all of our assumptions appear to hold, except for the binned residuals plot, where ~69% of our binned residuals fall outwith the error bounds. This could be due to a number of reasons, such as under-fitting, potential interaction terms not yet considered, or an absence of important explanatory variables not included in our data set.
+From this output, we see that all of our assumptions appear to hold, except for the binned residuals plot, where ~69% of our binned residuals fall outwith the error bounds. This could be due to a number of reasons, such as under-fitting, potential interaction terms not yet considered, or an absence of important explanatory variables not included in our data set. It is important to note that ~70% of our observations are in the non-obese category, which could explain this result.
 
 Continuing, we can also further investigate the performance of our model by plotting the model's ROC curve.
 
@@ -249,19 +255,90 @@ model_pred_0.5 <- model_1_pred %>%
   mutate(predicted_class = 
            factor(ifelse(.fitted > 0.5, "Yes", "No")))
 
-roc_model_1 <- roc_curve(model_pred_0.5,
+roc_model <- roc_curve(model_pred_0.5,
                          truth = Obese,
                          .fitted,
                          event_level = "second")  %>% 
   mutate(youden_j = sensitivity + specificity - 1)
 
-plot(x = 0:1, y = 0:1, type = "n")
-lines(x = 1 - roc_model_1$sensitivity, y = roc_model_1$specificity,
+plot(x = 1:0, y = 0:1, type = "n", 
+     xlab = "1 - Specificity", ylab = "Sensitivity")
+lines(x = 1 - roc_model$specificity, y = roc_model$sensitivity,
       type = "l", lwd = 2)
 abline(a = 0, b = 1)
-abline(v = c(0.464, 0.269))
+#abline(v = c(0.464, 0.269))
 ```
 
+We see from @fig-diff-roc-plot that as a whole our model seems to be better than just randomly guessing, but we can further examine this by looking at the observations predicted to be most likely to be obese.
 
+```{r}
+#| label: fig-diff-pred-model
+#| fig-cap: Predicted values of observations
+#| fig-cap-location: top
+
+model_1_pred[order(model_1_pred$.fitted, decreasing = T),] %>%
+  dplyr::select(Obese, Age, Education, Veg, .fitted) %>%
+  slice_head(n = 5) %>%
+  gt() %>%
+  fmt_number(decimals = 3) %>%
+  cols_label(
+    .fitted = html("Pred. Prob.")
+  )
+
+```
+
+@fig-diff-pred-model shows that our model never predicts an observation to have a probability of obesity greater than 48.1%. So to examine the predictive power of our model, we must set a threshold below 0.5. According to the Youden index summary metric, the threshold that maximises the specificity and sensitivity is 0.269. At this threshold, we obtain the following confusion matrix and performance metrics, seen in @fig-diff-conf-mat.
+
+```{r}
+#| label: fig-diff-conf-mat
+#| fig-cap: Confusion matrix at a threshold of 0.269
+#| fig-cap-location: top
+
+model_pred_0.269 <- model_1_pred %>%
+  mutate(predicted_class = 
+           factor(ifelse(.fitted > 0.269, "Yes", "No")))
+
+eval_metric <- metric_set(accuracy,sensitivity,specificity,ppv,npv)
+
+conf_mat(model_pred_0.269, 
+         truth = Obese, 
+         estimate = predicted_class)[[1]] %>%
+  as.data.frame() %>%
+  gt() %>%
+  tab_style(
+    style = cell_text(align = "center"),
+    location = cells_body()
+  ) #%>%
+#  data_color(
+#    rows = c(1, 4),
+#    palette = "green4",
+#    alpha = 0.4
+#    ) %>%
+#  data_color(
+#    rows = c(2,3),
+#    palette = "red2",
+#    alpha = 0.4
+#  )
+```
+
+```{r}
+#| label: fig-diff-perf-metrics
+#| fig-cap: Predictive performance metrics for our model at a threshold of 0.269
+#| fig-cap-location: top
+
+eval_metric(model_pred_0.269,
+            truth = Obese,
+            estimate = predicted_class,  
+            event_level = "second") %>% 
+  dplyr::select(.metric, .estimate) %>%
+  gt() %>%
+  cols_label(
+    .metric = html("Metric"),
+    .estimate = html("Estimate")
+  )
+```
+
+These metrics reveal that our model's true negative rate of prediction is an acceptable level, it struggles to correctly predict when an observation is obese. These results show that our model struggles to differentiate obesity observations based on age, socio-economic status or lifestyle factors.
 
 # Conclusions {#sec-con}
+
