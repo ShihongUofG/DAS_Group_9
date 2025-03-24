@@ -33,10 +33,12 @@ Obesity is a significant public health concern that affects morbidity and mortal
 
 # Exploratory Analysis {#sec-EA}
 
+## Prevalence
+
 The prevalence of obesity for each year was computed using the formula:
 
 $$
-\text{Prevalence (in %)} = \frac{N_{\text{obese}}}{N_{\text{total}}} \times 100
+\text{Prevalence (in \%)} = \frac{N_{\text{obese}}}{N_{\text{total}}} \times 100
 $$
 
 First we will produce a line plot with data points to illustrate the trend in obesity prevalence over the years.
@@ -44,7 +46,10 @@ First we will produce a line plot with data points to illustrate the trend in ob
 ```{r}
 data <- read.csv("DAProject1.csv")
 
-data$Year <- as.factor(data$Year)
+for (i in c(2:7)) {
+  data[,i] <- factor(data[,i])
+}
+
 
 prevalence <- data %>%
   group_by(Year) %>%
@@ -74,20 +79,29 @@ ggplot(data, aes(x = Year, fill = Obese)) +
 
 We can observe that in each year, the “No” bar (non-obese) is taller than the “Yes” bar (obese). However, the gap between these two bars may differ slightly from year to year.
 
+## Differences in Obesity
+
+We can start with a density plot of our continuous numerical 
+
+```{r}
+
+```
+
 
 
 # Formal Analysis {#sec-FA}
+
+## Prevalence
+
 The logistic regression model is given by:
-```{=tex}
+
+
 \begin{align}
 y_i &\sim  \mathrm{Bernoulli}(p_i) \\
 \end{align}
-```
-```{=tex}
 \begin{align}
 logit(p_i) = \alpha + \beta_{year2009} \cdot \mathbb{I}_{\mathrm{year2009}} + \beta_{year2010} \cdot \mathbb{I}_{\mathrm{year2010}} + \beta_{year2011} \cdot \mathbb{I}_{\mathrm{year2011}} + \beta_{year2012} \cdot \mathbb{I}_{\mathrm{year2012}}
 \end{align}
-```
 
 ```{r}
 #| message: false
@@ -104,11 +118,150 @@ model %>%
 plot_model(model, show.values = TRUE,
            title = "Odds (being obese compared to Year 2008)", show.p = FALSE)
 ```
-The fitted model is:
-$$
-logit(p_i) = -0.867901  -0.037769 \cdot \mathbb{I}_{\mathrm{year2009}} + 0.043062 \cdot \mathbb{I}_{\mathrm{year2010}} + 0.003814 \cdot \mathbb{I}_{\mathrm{year2011}} + 0.001743 \cdot \mathbb{I}_{\mathrm{year2012}}$$
-We have fitted a logistic regression model to observe the relation between the years and obesity prevalance in Scotland over the years 2008-2012. \
+
+The fitted model is: $$
+logit(p_i) = -0.867901  -0.037769 \cdot \mathbb{I}_{\mathrm{year2009}} + 0.043062 \cdot \mathbb{I}_{\mathrm{year2010}} + 0.003814 \cdot \mathbb{I}_{\mathrm{year2011}} + 0.001743 \cdot \mathbb{I}_{\mathrm{year2012}}$$ We have fitted a logistic regression model to observe the relation between the years and obesity prevalance in Scotland over the years 2008-2012.\
 The baseline category is taken to be Year 2008. From the output odds model summary, we can see that the odds of being obese in Year 2008 was 0.42.\
 The coefficients for Year2009, Year2010, Year2011, Year2012 represents the change in odds of being obese compared to the baseline year 2008.
+
+
+## Differences
+
+We can attempt to fit a logistic regression model to the data set. With the `stepAIC` function from the `MASS` library, we can perform stepwise model selection to help decide which predictors to include in our GLM.
+
+```{r}
+#| echo: false
+#| eval: true
+#| message: false
+
+model_Full <- glm(Obese~., family = "binomial", data = data)
+model_Null <- glm(Obese~1, family = "binomial", data = data)
+
+model_1 <- MASS::stepAIC(model_Null,
+                         scope = formula(model_Full),
+                         direction = "both")
+print(model_1$formula)
+```
+
+From this, we see that one potential model fit would be to include the variables Age, Education, and Veg in our GLM. We can also use the `regsubsets` function from the `leaps` package, specifying that evaluations are to be carried out with the Mallow's CP criterion
+
+```{r}
+models <- leaps::regsubsets(Obese ~ . , data = data)
+plot(models, scale = "Cp")
+```
+
+As these two processes are in agreement, we fit the following model to investigate potential differences in obesity levels by age, socio-economic status or lifestyle factors.
+
+$$ y_i \sim \text{Bernoulli}(p_i)$$ 
+$$\text{log}(\frac{p_i}{1-p_i}) = 
+\alpha + \beta_\text{age} \cdot x_i + 
+\beta_\text{veg} \cdot \mathbb{I}_\text{veg} +
+\beta_\text{none} \cdot \mathbb{I}_\text{none} + 
+\beta_\text{standard} \cdot \mathbb{I}_\text{standard} + 
+\beta_\text{higher} \cdot \mathbb{I}_\text{higher} + 
+\beta_\text{HNC/D} \cdot \mathbb{I}_\text{HNC/D} +
+\beta_\text{other} \cdot \mathbb{I}_\text{other}$$
+where 
+
+- $p_i$ is the probability of observation $\text{i}$ being classified as obese
+- $\alpha$ is the intercept term of our model
+- $\beta_\text{age}$ is the coefficient of our continuous variable, age
+- $x_i$ is the age of observation $\text{i}$
+- $\beta_j$ is the additional intercept of an observation that falls into category $\text{j}$
+- $\mathbb{I}_j$ is the indicator variable for category j such that 
+$$
+\mathbb{I}_j = \cases{1 & \text{for observations that fall into category j} \\
+0 & \text{otherwise}}
+$$
+With our model now fitted, we can obtain our model summary table of the odds estimates of each predictor.
+
+```{r}
+#| tbl-cap: Model output of odds, with 95% confidence interval
+#| label: tbl-diff-mod-output
+
+model_1 %>%
+  tidy(conf.int = TRUE, exponentiate = TRUE) %>%
+  dplyr::select(-p.value) %>%
+  gt() %>%
+  fmt_number(decimals = 3)
+```
+
+From this, we see that our model predicts that a one year increase (all other variables held constant) in age brings 1.012 times the odds of obesity. Similarly, we see that a person who consumes the recommended amount of vegetables per day has 0.87 times the odds of obesity, compared to a person who does not. Finally, we see that those with degrees are predicted to have lower odds of obesity when compared to every other education class.
+
+We note that none of the 95% confidence intervals of our chosen predictors contain 1, which is a positive indicator of the predictors' significance.
+
+We can examine our model's predictive performance by first examining the below plots of predicted obesity probabilities against each explanatory variable.
+
+```{r}
+#| label: fig-diff-pred-plot
+#| fig-cap: Predictive plots of obesity against each explanatory variable
+#| fig-cap-location: top
+
+pred_plot_age <- plot_model(model_1, 
+           type = "pred", 
+           title = "", 
+           terms="Age [all]", 
+           axis.title = c("Age", "Prob. of instructor being male"))
+
+pred_plot_edu <- plot_model(model_1, 
+           type = "pred", 
+           title = "", 
+           terms="Education [all]", 
+           axis.title = c("Age", "Prob. of instructor being male"))
+
+pred_plot_veg <- plot_model(model_1, 
+           type = "pred", 
+           title = "", 
+           terms="Veg [all]", 
+           axis.title = c("Age", "Prob. of instructor being male"))
+
+gridExtra::grid.arrange(pred_plot_age,
+                        pred_plot_edu,
+                        pred_plot_veg,
+                        ncol = 3, nrow = 1)
+
+```
+
+We first note that our findings from the model output table are confirmed here. However, we also can note that our model seems hesitant to assign a probability greater than 0.5 to any observation in our data set. To expand on this, we first can check our model assumptions via the `performance` library.
+
+```{r}
+#| label: fig-diff-asump-plot
+#| fig-cap: Various diagnostic plots for checking our model assumptions
+#| eval: false
+#| echo: true
+
+performance::check_model(model_1, panel = T)
+```
+
+From this output, we see that all of our assumptions appear to hold, except for the binned residuals plot, where ~69% of our binned residuals fall outwith the error bounds. This could be due to a number of reasons, such as under-fitting, potential interaction terms not yet considered, or an absence of important explanatory variables not included in our data set.
+
+Continuing, we can also further investigate the performance of our model by plotting the model's ROC curve.
+
+```{r}
+#| label: fig-diff-roc-plot
+#| fig-cap: ROC curve of our classification model
+#| fig-cap-location: top
+
+model_1_pred <- model_1 %>%
+  augment(type.predict = c("response"))
+
+model_pred_0.5 <- model_1_pred %>%
+  mutate(predicted_class = 
+           factor(ifelse(.fitted > 0.5, "Yes", "No")))
+
+roc_model_1 <- roc_curve(model_pred_0.5,
+                         truth = Obese,
+                         .fitted,
+                         event_level = "second")  %>% 
+  mutate(youden_j = sensitivity + specificity - 1)
+
+plot(x = 0:1, y = 0:1, type = "n")
+lines(x = 1 - roc_model_1$sensitivity, y = roc_model_1$specificity,
+      type = "l", lwd = 2)
+abline(a = 0, b = 1)
+abline(v = c(0.464, 0.269))
+```
+
+
 
 # Conclusions {#sec-con}
