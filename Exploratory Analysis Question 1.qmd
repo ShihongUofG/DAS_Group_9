@@ -462,6 +462,10 @@ These metrics reveal that our model's true negative rate of prediction is an acc
 
 # Conclusions {#sec-con}
 
+## Prevalance
+
+
+
 ## Differences
 
 In conclusion, our model struggled to effectively differentiate between obese and non-obese observations based on the provided predictors. Our exploratory analysis suggested no notable difference in obesity levels between genders, which was confirmed when fitting our model. While our model appears to suggest that age, education level and vegetable consumption are all statistically significant, it is possible that another model with extra explanatory variables could have greater predictive power, which could be worth future analysis. Additionally, it could be worth considering whether our obtained results would have differed had we split our data into a training and testing split initially. 
