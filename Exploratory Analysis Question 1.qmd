@@ -16,6 +16,7 @@ editor_options:
 #| echo: false
 #| warning: false
 #| message: false
+
 library(ggplot2)
 library(tidyverse)
 library(tidymodels)
@@ -29,11 +30,11 @@ library(sjPlot)
 
 # Introduction {#sec-intro}
 
-Obesity is a significant public health concern that affects morbidity and mortality. Monitoring its prevalence is essential for evaluating public health policies and interventions. The Scottish Health Survey, which samples individuals from private households across Scotland, provides an opportunity to study trends in obesity. The primary goal of this analysis is to determine whether there has been a statistically noticeable change in obesity prevalence in Scotland over the period 2008–2012.
+Obesity is a significant public health concern that affects morbidity and mortality. Monitoring its prevalence is essential for evaluating public health policies and interventions. The Scottish Health Survey, which samples individuals from private households across Scotland, provides an opportunity to study trends in obesity. The primary goal of this analysis is to determine whether there has been a statistically noticeable change in obesity prevalence in Scotland over the period 2008–2012. The secondary goal of this analysis is to assess whether there is a difference in obesity levels in other variables recorded in the Scottish Health Survey between 2008 and 2012.
 
 # Exploratory Analysis {#sec-EA}
 
-## Prevalence
+## Prevalance of Obesity Through The Years
 
 The prevalence of obesity for each year was computed using the formula:
 
@@ -79,19 +80,92 @@ ggplot(data, aes(x = Year, fill = Obese)) +
 
 We can observe that in each year, the “No” bar (non-obese) is taller than the “Yes” bar (obese). However, the gap between these two bars may differ slightly from year to year.
 
-## Differences in Obesity
-
-We can start with a density plot of our continuous numerical 
+## Differences in Obesity Through The Years
 
 ```{r}
+plot.edu <- ggplot(data, aes(x = Education, fill = Obese)) +
+  geom_bar(position = "fill") +
+  labs(title = "Obesity by Education Level", x = "Education Level", y = "Proportion") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
 
+plot.veg <- ggplot(data, aes(x = Veg, fill = Obese)) +
+  geom_bar(position = "fill") +
+  labs(title = "Obesity and Vegetable Intake", x = "Vegetable Intake", y = "Proportion")+
+  scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
+
+plot.fruit <- ggplot(data, aes(x = Fruit, fill = Obese)) +
+  geom_bar(position = "fill") +
+  labs(title = "Obesity and Fruit Intake", x = "Fruit Intake", y = "Proportion")+
+  scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
+
+plot.age1 <- ggplot(data, aes(y = (Age), x = Obese, fill = Obese)) +
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
+  geom_boxplot()
+
+plot.age2 <- ggplot(data, aes(x = (Age), fill = Obese, alpha = 0.1)) +
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
+  geom_density()
+
+plot.year <- ggplot(data, aes(x=Year, fill=Obese))+
+  geom_bar(position="fill")+
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3"))+
+  labs(y="Proportion")
+
+plot.sex <- ggplot(data, aes(x=Sex, fill=Obese))+
+  geom_bar(position="fill")+
+  scale_fill_manual(values = c("dodgerblue4", "firebrick3"))+
+  labs(y="Proportion")
+```
+
+We want to see whether initial plots may give an indication to if there is in fact a difference in obesity levels across the other variables in the survey. We will begin by looking at fruit and veg intake to see if there are differences in these areas.
+
+```{r}
+#| label: exp plots 1
+#| fig-cap: Proportion of Obesity by Fruit and Veg intake
+
+gridExtra::grid.arrange(plot.fruit, plot.veg, ncol = 2)
+```
+
+We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables.
+
+Next lets look at differences across years and sex.
+
+```{r}
+#| label: exp plots 2
+#| fig-cap: Proportion of Obesity by Year and Sex
+
+gridExtra::grid.arrange(plot.year, plot.sex, ncol = 2)
+```
+
+Now we can see that the proportion of obesity across years 2008-2012 do fluctuate slightly but not a lot so we will need to look at this further. There appears to be almost no difference in levels of obesity across males and females though, as these proportions are almost identical.
+
+Next we shall look at whether there are differences in obesity levels across ages.
+
+```{r}
+#| label: exp plots 3
+#| fig-cap: Boxplot and Density plot of age
+
+gridExtra::grid.arrange(plot.age1, plot.age2, ncol = 2)
+```
+
+We can see here that the age of obese people tends to be slightly older than those who are not obese, however we cannot tell whether this is a significant difference from these plots. 
+
+Finally, we will look at obesity levels across different levels of education.
+
+```{r}
+#| label: exp plots 4
+#| fig-cap: Proportion of Obesity across Education Levls
+
+gridExtra::grid.arrange(plot.edu, ncol = 1)
 ```
 
 
+From this we can see that the proportion of obesity does seem to vary across education levels, with the higher that level, the lower the proportion of obesity appears to be.
 
 # Formal Analysis {#sec-FA}
 
-## Prevalence
+## Prevalance of Obesity Through the Years
 
 The logistic regression model is given by:
 
@@ -114,6 +188,7 @@ model %>%
   tidy(conf.int = T,
        exponentiate = T) %>% 
   gt()
+
 
 plot_model(model, show.values = TRUE,
            title = "Odds (being obese compared to Year 2008)", show.p = FALSE)
@@ -157,6 +232,7 @@ plot(models, scale = "Cp")
 As these two processes are in agreement, we fit the following model to investigate potential differences in obesity levels by age, socio-economic status or lifestyle factors.
 
 $$ y_i \sim \text{Bernoulli}(p_i)$$ 
+
 $$\text{log}(\frac{p_i}{1-p_i}) = 
 \alpha + \beta_\text{age} \cdot x_i + 
 \beta_\text{veg} \cdot \mathbb{I}_\text{veg} +
@@ -173,6 +249,7 @@ where
 - $x_i$ is the age of observation $\text{i}$
 - $\beta_j$ is the additional intercept of an observation that falls into category $\text{j}$
 - $\mathbb{I}_j$ is the indicator variable for category j such that 
+
 $$
 \mathbb{I}_j = \cases{1 & \text{for observations that fall into category j} \\
 0 & \text{otherwise}}
