@@ -228,14 +228,17 @@ roc_model_1 <- roc_curve(model_pred_0.5,
                          event_level = "second")  %>% 
   mutate(youden_j = sensitivity + specificity - 1)
 
-plot(x = 0:1, y = 0:1, type = "n")
-lines(x = 1 - roc_model_1$sensitivity, y = roc_model_1$specificity,
+y_j <- roc_model_1 %>%
+  filter(youden_j == max(youden_j))
+
+plot(x = 1:0, y = 0:1, type = "n", 
+     xlab = "1 - Specificity", ylab = "Sensitivity")
+lines(x = 1 - roc_model$specificity, y = roc_model$sensitivity,
       type = "l", lwd = 2)
 abline(a = 0, b = 1)
-abline(v = c(0.464, 0.269))
+abline(v = 1 - y_j$specificity, h = y_j$sensitivity)
 
-roc_model_1 %>%
-  filter(youden_j == max(youden_j))
+
 
 
 #conf_mat(model_pred_0.5, truth = Obese, estimate = predicted_class) no 'yes' predicted
@@ -262,3 +265,6 @@ print("Hello world")
 
 #realign latex code
 #add hyperlinks
+#get plots side by side
+#reduce plot size
+#fix colours in prevalence
