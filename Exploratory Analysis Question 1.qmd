@@ -228,7 +228,7 @@ pred_plot_veg <- plot_model(model_1,
            type = "pred", 
            title = "", 
            terms="Veg [all]", 
-           axis.title = c("Recommended vegetable intake?", 
+           axis.title = c("Vegetable intake?", 
                           "Obesity probability"))
 
 gridExtra::grid.arrange(pred_plot_age,
