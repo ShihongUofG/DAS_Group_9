@@ -167,9 +167,14 @@ model_1 %>%
 model_1 %>%
   summary()
 
-performance::check_model(model_1, panel = T)
+performance::check_model(model_1) %>%
+  plot() + patchwork::plot_layout(3, 2)
+
+
+
 binned_residuals(model_1)
 
+?check_model
 
 #different models
 #threshold = 0.5
@@ -274,20 +279,5 @@ print("Hello world")
 #add hyperlinks
 #get plots side by side
 #reduce plot size
-#fix colours in prevalence
 
-\begin{figure}[ht]
-\begin{minipage}[t]{0.5\textwidth}
-```{r table3, echo=FALSE, results='asis'}
-table1
-```
-\subcaption{Table 1: Description of Table 1}
-\end{minipage}
-\begin{minipage}[t]{0.5\textwidth}
-```{r table4, echo=FALSE}
-table2
-```
-\subcaption{Table 2: Description of Table 2}
-\end{minipage}
-\caption{Two Tables Side by Side and Aligned at the Top}
-\end{figure}
+theme(legend.position="none")
