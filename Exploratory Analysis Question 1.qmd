@@ -187,7 +187,15 @@ model_1 %>%
   tidy(conf.int = TRUE, exponentiate = TRUE) %>%
   dplyr::select(-p.value) %>%
   gt() %>%
-  fmt_number(decimals = 3)
+  fmt_number(decimals = 3) %>%
+  text_case_match(
+    "(Intercept)" ~ "Intercept",
+    "EducationHigher grade or equiv" ~ "Higher or equivalent",
+    "EducationHNC/D or equiv" ~ "HNC/D or equivalent",
+    "EducationNo qualifications" ~ "No qualifications",
+    "EducationOther school level" ~ "Other school level",
+    "EducationStandard grade or equiv" ~ "Standard grade or equivalent"	
+  )
 ```
 
 From this, we see that our model predicts that a one year increase (all other variables held constant) in age brings 1.012 times the odds of obesity. Similarly, we see that a person who consumes the recommended amount of vegetables per day has 0.87 times the odds of obesity, compared to a person who does not. Finally, we see that those with degrees are predicted to have lower odds of obesity when compared to every other education class.
@@ -205,19 +213,23 @@ pred_plot_age <- plot_model(model_1,
            type = "pred", 
            title = "", 
            terms="Age [all]", 
-           axis.title = c("Age", "Prob. of instructor being male"))
+           axis.title = c("Age", 
+                          "Obesity probability"))
 
 pred_plot_edu <- plot_model(model_1, 
            type = "pred", 
            title = "", 
            terms="Education [all]", 
-           axis.title = c("Age", "Prob. of instructor being male"))
+           axis.title = c("Education", 
+                          "Obesity probability")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 pred_plot_veg <- plot_model(model_1, 
            type = "pred", 
            title = "", 
            terms="Veg [all]", 
-           axis.title = c("Age", "Prob. of instructor being male"))
+           axis.title = c("Recommended vegetable intake?", 
+                          "Obesity probability"))
 
 gridExtra::grid.arrange(pred_plot_age,
                         pred_plot_edu,
@@ -269,22 +281,23 @@ abline(a = 0, b = 1)
 #abline(v = c(0.464, 0.269))
 ```
 
-We see from @fig-diff-roc-plot that as a whole our model seems to be better than just randomly guessing, but we can further examine this by looking at the observations predicted to be most likely to be obese.
+We see from @fig-diff-roc-plot that as a whole our model seems to be slightly better than just randomly guessing, but we can further examine this by looking at the observations predicted to be most likely to be obese.
 
 ```{r}
 #| label: fig-diff-pred-model
 #| fig-cap: Predicted values of observations
 #| fig-cap-location: top
 
-model_1_pred[order(model_1_pred$.fitted, decreasing = T),] %>%
+pred_tab_head <- model_1_pred[order(model_1_pred$.fitted, decreasing = T),] %>%
   dplyr::select(Obese, Age, Education, Veg, .fitted) %>%
-  slice_head(n = 5) %>%
+  slice_head(n = 5)
+pred_tab_head$.fitted <- round(pred_tab_head$.fitted, 3)
+
+pred_tab_head %>%
   gt() %>%
-  fmt_number(decimals = 3) %>%
   cols_label(
     .fitted = html("Pred. Prob.")
   )
-
 ```
 
 @fig-diff-pred-model shows that our model never predicts an observation to have a probability of obesity greater than 48.1%. So to examine the predictive power of our model, we must set a threshold below 0.5. According to the Youden index summary metric, the threshold that maximises the specificity and sensitivity is 0.269. At this threshold, we obtain the following confusion matrix and performance metrics, seen in @fig-diff-conf-mat.
@@ -338,7 +351,10 @@ eval_metric(model_pred_0.269,
   )
 ```
 
-These metrics reveal that our model's true negative rate of prediction is an acceptable level, it struggles to correctly predict when an observation is obese. These results show that our model struggles to differentiate obesity observations based on age, socio-economic status or lifestyle factors.
+These metrics reveal that our model's true negative rate of prediction is an acceptable level, it struggles to correctly predict when an observation is obese, so our model struggles to differentiate obesity observations based on age, socio-economic status or lifestyle factors.
 
 # Conclusions {#sec-con}
 
+## Differences
+
+In conclusion, our model struggled to effectively differentiate between obese and non-obese observations based on the provided predictors. Our exploratory analysis suggested no notable difference in obesity levels between genders, which was confirmed when fitting our model. While our model appears to suggest that age, education level and vegetable consumption are all statistically significant, it is possible that another model with extra explanatory variables could have greater predictive power, which could be worth future analysis. Additionally, it could be worth considering whether our obtained results would have differed had we split our data into a training and testing split initially. 
