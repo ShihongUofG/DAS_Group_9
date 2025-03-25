@@ -10,6 +10,8 @@ format:
     embed-resources: true
 editor_options: 
   chunk_output_type: console
+header-includes:
+  - "\\usepackage{subcaption}"
 ---
 
 ```{r}
@@ -46,12 +48,15 @@ $$
 First we will produce a line plot with data points to illustrate the trend in obesity prevalence over the years.
 
 ```{r}
+#| fig-width: 5
+#| fig-height: 4
+#| fig-align: center
+
 data <- read.csv("DAProject1.csv")
 
 for (i in c(2:7)) {
   data[,i] <- factor(data[,i])
 }
-
 
 prevalence <- data %>%
   group_by(Year) %>%
@@ -72,11 +77,16 @@ From the graph we can see that the prevalence appears to fluctuate year to year,
 Also we will produce a bar plot to display the count of individuals classified as obese versus not obese for each survey year.
 
 ```{r}
+#| fig-width: 5
+#| fig-height: 4
+#| fig-align: center
+
 ggplot(data, aes(x = Year, fill = Obese)) +
   geom_bar(position = "dodge") +
   labs(title = "Count of Obesity Classification by Year",
        x = "Year",
-       y = "Count") 
+       y = "Count") +
+  scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
 ```
 
 We can observe that in each year, the “No” bar (non-obese) is taller than the “Yes” bar (obese). However, the gap between these two bars may differ slightly from year to year.
@@ -87,7 +97,8 @@ We can observe that in each year, the “No” bar (non-obese) is taller than th
 plot.edu <- ggplot(data, aes(x = Education, fill = Obese)) +
   geom_bar(position = "fill") +
   labs(title = "Obesity by Education Level", x = "Education Level", y = "Proportion") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.margin = unit(c(0.25, 0.5, 0.25, 0.5), "cm"))+
   scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
 
 plot.veg <- ggplot(data, aes(x = Veg, fill = Obese)) +
@@ -102,11 +113,13 @@ plot.fruit <- ggplot(data, aes(x = Fruit, fill = Obese)) +
 
 plot.age1 <- ggplot(data, aes(y = (Age), x = Obese, fill = Obese)) +
   scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
-  geom_boxplot()
+  geom_boxplot() +
+  labs(y = "Age")
 
 plot.age2 <- ggplot(data, aes(x = (Age), fill = Obese, alpha = 0.1)) +
   scale_fill_manual(values = c("dodgerblue4", "firebrick3")) +
-  geom_density()
+  geom_density() +
+  labs(y = "Age")
 
 plot.year <- ggplot(data, aes(x=Year, fill=Obese))+
   geom_bar(position="fill")+
@@ -117,15 +130,23 @@ plot.sex <- ggplot(data, aes(x=Sex, fill=Obese))+
   geom_bar(position="fill")+
   scale_fill_manual(values = c("dodgerblue4", "firebrick3"))+
   labs(y="Proportion")
+
+legend <- plot.fruit %>% ggpubr::get_legend() %>% ggpubr::as_ggplot()
 ```
 
 We want to see whether initial plots may give an indication to if there is in fact a difference in obesity levels across the other variables in the survey. We will begin by looking at fruit and veg intake to see if there are differences in these areas.
 
 ```{r}
-#| label: exp plots 1
+#| label: exp-plots 1
 #| fig-cap: Proportion of Obesity by Fruit and Veg intake
+#| fig-width: 5
+#| fig-height: 4
+#| fig-align: center
 
-gridExtra::grid.arrange(plot.fruit, plot.veg, ncol = 2)
+gridExtra::grid.arrange(plot.fruit + theme(legend.position="none"), 
+                        plot.veg + theme(legend.position="none"),
+                        legend,
+                        ncol = 3)
 ```
 
 We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables.
@@ -133,10 +154,16 @@ We can see here that the proportions of obesity appear to be almost in the same 
 Next lets look at differences across years and sex.
 
 ```{r}
-#| label: exp plots 2
+#| label: exp-plots 2
 #| fig-cap: Proportion of Obesity by Year and Sex
+#| fig-width: 5
+#| fig-height: 4
+#| fig-align: center
 
-gridExtra::grid.arrange(plot.year, plot.sex, ncol = 2)
+gridExtra::grid.arrange(plot.year + theme(legend.position="none"),
+                        plot.sex + theme(legend.position="none"),
+                        legend,
+                        ncol = 3)
 ```
 
 Now we can see that the proportion of obesity across years 2008-2012 do fluctuate slightly but not a lot so we will need to look at this further. There appears to be almost no difference in levels of obesity across males and females though, as these proportions are almost identical.
@@ -144,10 +171,16 @@ Now we can see that the proportion of obesity across years 2008-2012 do fluctuat
 Next we shall look at whether there are differences in obesity levels across ages.
 
 ```{r}
-#| label: exp plots 3
+#| label: exp-plots 3
 #| fig-cap: Boxplot and Density plot of age
+#| fig-width: 5
+#| fig-height: 4
+#| fig-align: center
 
-gridExtra::grid.arrange(plot.age1, plot.age2, ncol = 2)
+gridExtra::grid.arrange(plot.age1 + theme(legend.position="none"),
+                        plot.age2 + theme(legend.position="none"),
+                        legend,
+                        ncol = 3)
 ```
 
 We can see here that the age of obese people tends to be slightly older than those who are not obese, however we cannot tell whether this is a significant difference from these plots. 
@@ -155,8 +188,11 @@ We can see here that the age of obese people tends to be slightly older than tho
 Finally, we will look at obesity levels across different levels of education.
 
 ```{r}
-#| label: exp plots 4
-#| fig-cap: Proportion of Obesity across Education Levls
+#| label: exp-plots 4
+#| fig-cap: Proportion of Obesity across Education Levels
+#| fig-width: 5
+#| fig-height: 4
+#| fig-align: center
 
 gridExtra::grid.arrange(plot.edu, ncol = 1)
 ```
@@ -247,15 +283,29 @@ model_1 <- MASS::stepAIC(model_Null,
 print(model_1$formula)
 ```
 
-From this, we see that one potential model fit would be to include the variables Age, Education, and Veg in our GLM. We can also use the `regsubsets` function from the `leaps` package, specifying that evaluations are to be carried out with the Mallow's CP criterion
+From this, we see that one potential model fit would be to include the variables Age, Education, and Veg in our GLM. We can also use the `regsubsets` function from the `leaps` package, specifying that evaluations are to be carried out with the Mallow's CP criterion.
 
 ```{r}
+#| label: fig-diff-cp-plot
+#| fig-cap: Mallow's CP output
+#| fig-width: 5
+#| fig-height: 4
+#| fig-align: center
+#| message: false
+
 model_1 <- glm(Obese ~ Age + Education + Veg,
                family = binomial,
                data = data)
 
-models <- leaps::regsubsets(Obese ~ . , data = data)
-plot(models, scale = "Cp")
+#Can't change x labels in regsubsets plot, so making new data set w diff. names
+
+data2 <- data
+levels(data2$Education) <- c("Degree+", "Higher", "HNC/D", 
+                             "None", "Other", "Standard")
+colnames(data2)[3] <- "Ed" 
+
+models <- leaps::regsubsets(Obese ~ . , data = data2)
+plot(models, scale = "Cp", fig.dim = c(3, 1))
 ```
 
 As these two processes are in agreement, we fit the following model to investigate potential differences in obesity levels by age, socio-economic status or lifestyle factors.
@@ -301,6 +351,9 @@ model_1 %>%
     "EducationNo qualifications" ~ "No qualifications",
     "EducationOther school level" ~ "Other school level",
     "EducationStandard grade or equiv" ~ "Standard grade or equivalent"	
+  ) %>%
+  tab_options(
+    table.width = NULL
   )
 ```
 
@@ -314,6 +367,9 @@ We can examine our model's predictive performance by first examining the below p
 #| label: fig-diff-pred-plot
 #| fig-cap: Predictive plots of obesity against each explanatory variable
 #| fig-cap-location: top
+#| fig-width: 5
+#| fig-height: 3.5
+#| fig-align: center
 
 pred_plot_age <- plot_model(model_1, 
            type = "pred", 
@@ -322,10 +378,14 @@ pred_plot_age <- plot_model(model_1,
            axis.title = c("Age", 
                           "Obesity probability"))
 
-pred_plot_edu <- plot_model(model_1, 
+model_2 <- glm(Obese ~ Age + Ed + Veg,
+               family = binomial,
+               data = data2)
+
+pred_plot_edu <- plot_model(model_2, 
            type = "pred", 
            title = "", 
-           terms="Education [all]", 
+           terms="Ed [all]", 
            axis.title = c("Education", 
                           "Obesity probability")) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -365,6 +425,9 @@ Continuing, we can also further investigate the performance of our model by plot
 #| label: fig-diff-roc-plot
 #| fig-cap: ROC curve of our classification model
 #| fig-cap-location: top
+#| fig-width: 5
+#| fig-height: 3.5
+#| fig-align: center
 
 model_1_pred <- model_1 %>%
   augment(type.predict = c("response"))
@@ -406,12 +469,13 @@ pred_tab_head %>%
   )
 ```
 
-@fig-diff-pred-model shows that our model never predicts an observation to have a probability of obesity greater than 48.1%. So to examine the predictive power of our model, we must set a threshold below 0.5. According to the Youden index summary metric, the threshold that maximises the specificity and sensitivity is 0.269. At this threshold, we obtain the following confusion matrix and performance metrics, seen in @fig-diff-conf-mat.
+@fig-diff-pred-model shows that our model never predicts an observation to have a probability of obesity greater than 48.1%. So to examine the predictive power of our model, we must set a threshold below 0.5. According to the Youden index summary metric, the threshold that maximises the specificity and sensitivity is 0.269. At this threshold, we obtain the following confusion matrix and performance metrics, seen in @fig-diff-mod-evals.
 
 ```{r}
-#| label: fig-diff-conf-mat
-#| fig-cap: Confusion matrix at a threshold of 0.269
+#| label: fig-diff-mod-evals
+#| fig-cap: Confusion matrix and predictive performance metrics for our model at a threshold of 0.269
 #| fig-cap-location: top
+#| message: false
 
 model_pred_0.269 <- model_1_pred %>%
   mutate(predicted_class = 
@@ -419,7 +483,7 @@ model_pred_0.269 <- model_1_pred %>%
 
 eval_metric <- metric_set(accuracy,sensitivity,specificity,ppv,npv)
 
-conf_mat(model_pred_0.269, 
+table_CM <- conf_mat(model_pred_0.269, 
          truth = Obese, 
          estimate = predicted_class)[[1]] %>%
   as.data.frame() %>%
@@ -427,25 +491,10 @@ conf_mat(model_pred_0.269,
   tab_style(
     style = cell_text(align = "center"),
     location = cells_body()
-  ) #%>%
-#  data_color(
-#    rows = c(1, 4),
-#    palette = "green4",
-#    alpha = 0.4
-#    ) %>%
-#  data_color(
-#    rows = c(2,3),
-#    palette = "red2",
-#    alpha = 0.4
-#  )
-```
+  ) %>%
+  gtsave("table_CM.png")
 
-```{r}
-#| label: fig-diff-perf-metrics
-#| fig-cap: Predictive performance metrics for our model at a threshold of 0.269
-#| fig-cap-location: top
-
-eval_metric(model_pred_0.269,
+table_EM <- eval_metric(model_pred_0.269,
             truth = Obese,
             estimate = predicted_class,  
             event_level = "second") %>% 
@@ -454,8 +503,16 @@ eval_metric(model_pred_0.269,
   cols_label(
     .metric = html("Metric"),
     .estimate = html("Estimate")
-  )
+  ) %>%
+  gtsave("table_EM.png")
+
+CMpng <- cowplot::ggdraw() + cowplot::draw_image("table_CM.png", scale = 0.4)
+EMpng <- cowplot::ggdraw() + cowplot::draw_image("table_EM.png", scale = 0.3)
+
+cowplot::plot_grid(CMpng, EMpng, nrow = 1)
+
 ```
+
 
 These metrics reveal that our model's true negative rate of prediction is an acceptable level, it struggles to correctly predict when an observation is obese, so our model struggles to differentiate obesity observations based on age, socio-economic status or lifestyle factors.
 

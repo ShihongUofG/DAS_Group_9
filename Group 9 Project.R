@@ -71,11 +71,18 @@ binned_residuals(model_Sat)
 
 
 
+
+
 library(leaps)
 models <- regsubsets(Obese ~ . , data = df)
 summary(models)
 
-plot(models, scale = "Cp") #says not to include sex, fruit or year
+par(mar = c(6, 4, 5, 2))
+
+
+dev.new(width = 3, height = 3)
+
+plot(models, scale = "Cp", fig.dim = c(3, 1)) #says not to include sex, fruit or year
 plot(models, scale = "bic") 
 plot(models, scale = "adjr2") 
 
@@ -268,3 +275,19 @@ print("Hello world")
 #get plots side by side
 #reduce plot size
 #fix colours in prevalence
+
+\begin{figure}[ht]
+\begin{minipage}[t]{0.5\textwidth}
+```{r table3, echo=FALSE, results='asis'}
+table1
+```
+\subcaption{Table 1: Description of Table 1}
+\end{minipage}
+\begin{minipage}[t]{0.5\textwidth}
+```{r table4, echo=FALSE}
+table2
+```
+\subcaption{Table 2: Description of Table 2}
+\end{minipage}
+\caption{Two Tables Side by Side and Aligned at the Top}
+\end{figure}
