@@ -164,7 +164,7 @@ From this we can see that the proportion of obesity does seem to vary across edu
 
 # Formal Analysis {#sec-FA}
 
-#Prevalance of Obesity Through the Years
+## Prevalance of Obesity Through the Years
 
 
 The logistic regression model is given by:
@@ -215,7 +215,7 @@ We have fitted a logistic regression model to observe the relation between the y
 The baseline category is taken to be Year 2008. From the output odds model summary, we can see that the odds of being obese in Year 2008 was 0.42.\
 The coefficients for Year2009, Year2010, Year2011, Year2012 represents the change in odds of being obese compared to the baseline year 2008.
 
-##Differences in Obesity Through The Years
+## Differences in Obesity Through The Years
 
 
 
