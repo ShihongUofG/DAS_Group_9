@@ -1,6 +1,6 @@
 ---
 title: "Project 1 Obesity Prevalence"
-author: "Shihong"
+author: "Shihong Wang, Jamie Watt, Mackenzie Whitelock, Irene Hanna Anu"
 execute: 
   echo: false
   eval: true
