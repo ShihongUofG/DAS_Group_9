@@ -311,7 +311,7 @@ models <- leaps::regsubsets(Obese ~ . , data = data2)
 plot(models, scale = "Cp", fig.dim = c(3, 1))
 ```
 
-As these two processes are in agreement, we fit the following model to investigate potential differences in obesity levels by age, socio-economic status or lifestyle factors.
+As these two processes are in agreement, we fit the following model to investigate potential differences in obesity levels by age, socio-economic status or lifestyle factors. Both these processes agree that gender does not seem to be a significant predictor, which combined with the findings in our exploratory analysis means we caan feasibly disregard it.
 
 $$ y_i \sim \text{Bernoulli}(p_i)$$ 
 
@@ -323,6 +323,7 @@ $$\text{log}(\frac{p_i}{1-p_i}) =
 \beta_\text{higher} \cdot \mathbb{I}_\text{higher} + 
 \beta_\text{HNC/D} \cdot \mathbb{I}_\text{HNC/D} +
 \beta_\text{other} \cdot \mathbb{I}_\text{other}$$
+
 where 
 
 - $p_i$ is the probability of observation $\text{i}$ being classified as obese
@@ -430,7 +431,7 @@ Continuing, we can also further investigate the performance of our model by plot
 #| fig-cap: ROC curve of our classification model
 #| fig-cap-location: top
 #| fig-width: 6
-#| fig-height: 3.75
+#| fig-height: 3.5
 #| fig-align: center
 
 model_1_pred <- model_1 %>%
@@ -473,50 +474,42 @@ pred_tab_head %>%
   )
 ```
 
-@fig-diff-pred-model shows that our model never predicts an observation to have a probability of obesity greater than 48.1%. So to examine the predictive power of our model, we must set a threshold below 0.5. According to the Youden index summary metric, the threshold that maximises the specificity and sensitivity is 0.269. At this threshold, we obtain the following confusion matrix and performance metrics, seen in @fig-diff-mod-evals.
+@fig-diff-pred-model shows that our model never predicts an observation to have a probability of obesity greater than 48.1%. So to examine the predictive power of our model, we must set a threshold below 0.5. According to the Youden index summary metric, the threshold that maximises the specificity and sensitivity is 0.269. At this threshold, we obtain the following confusion matrix and performance metrics, seen in @tbl-diff-mod-evals.
 
 ```{r}
-#| label: fig-diff-mod-evals
-#| fig-cap: Confusion matrix and predictive performance metrics for our model at a threshold of 0.269
-#| fig-cap-location: top
-#| message: false
-
 model_pred_0.269 <- model_1_pred %>%
   mutate(predicted_class = 
            factor(ifelse(.fitted > 0.269, "Yes", "No")))
 
 eval_metric <- metric_set(accuracy,sensitivity,specificity,ppv,npv)
 
-table_CM <- conf_mat(model_pred_0.269, 
+```
+
+```{r}
+#| label: tbl-diff-mod-evals
+#| tbl-cap: Confusion matrix and predictive performance metrics for our model at a threshold of 0.269
+#| tbl-cap-location: top
+#| message: false
+#| layout-ncol: 2
+
+#Can't get these plots to render side-by-side 
+
+conf_mat(model_pred_0.269, 
          truth = Obese, 
          estimate = predicted_class)[[1]] %>%
   as.data.frame() %>%
-  gt() %>%
-  tab_style(
-    style = cell_text(align = "center"),
-    location = cells_body()
-  ) %>%
-  gtsave("table_CM.png")
+  kable(format = "html", align = "l")  %>%
+  kable_styling(full_width = FALSE, position = "float_left")
 
-table_EM <- eval_metric(model_pred_0.269,
+eval_metric(model_pred_0.269,
             truth = Obese,
             estimate = predicted_class,  
             event_level = "second") %>% 
   dplyr::select(.metric, .estimate) %>%
-  gt() %>%
-  cols_label(
-    .metric = html("Metric"),
-    .estimate = html("Estimate")
-  ) %>%
-  gtsave("table_EM.png")
-
-CMpng <- cowplot::ggdraw() + cowplot::draw_image("table_CM.png", scale = 0.4)
-EMpng <- cowplot::ggdraw() + cowplot::draw_image("table_EM.png", scale = 0.3)
-
-cowplot::plot_grid(CMpng, EMpng, nrow = 1)
+  kable(format = "html", align = "r")  %>%
+  kable_styling(full_width = FALSE, position = "float_right")
 
 ```
-
 
 These metrics reveal that our model's true negative rate of prediction is an acceptable level, it struggles to correctly predict when an observation is obese, so our model struggles to differentiate obesity observations based on age, socio-economic status or lifestyle factors.
 

@@ -281,3 +281,34 @@ print("Hello world")
 #reduce plot size
 
 theme(legend.position="none")
+
+
+conf_mat(model_pred_0.269, 
+         truth = Obese, 
+         estimate = predicted_class)[[1]] %>%
+  as.data.frame() %>%
+  gt() %>%
+  tab_style(
+    style = cell_text(align = "center"),
+    location = cells_body()
+  )
+
+eval_metric(model_pred_0.269,
+            truth = Obese,
+            estimate = predicted_class,
+            event_level = "second") %>% 
+  dplyr::select(.metric, .estimate) %>%
+  kable()
+
+
+
+
+
+
+table.1985 %>%
+  kable("html", align = 'clc', caption = 'Bundesliga, Season 1985/86') %>%
+  kable_styling(full_width = F, position = "float_left")
+
+table.2015 %>%
+  kable("html", align = 'clc', caption = 'Bundesliga, Season 2015/16') %>%
+  kable_styling(full_width = F, position = "right")
