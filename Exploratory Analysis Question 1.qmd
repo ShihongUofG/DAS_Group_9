@@ -189,7 +189,7 @@ gridExtra::grid.arrange(plot.age1 + theme(legend.position="none"),
                         ncol = 3)
 ```
 
-We can see here that the age of obese people tends to be slightly older than those who are not obese, however we cannot tell whether this is a significant difference from these plots. 
+We can see here that the age of obese people tends to be slightly older than those who are not obese, however we cannot tell whether this is a significant difference from these plots.
 
 Finally, we will look at obesity levels across different levels of education.
 
@@ -203,7 +203,6 @@ Finally, we will look at obesity levels across different levels of education.
 gridExtra::grid.arrange(plot.edu, ncol = 1)
 ```
 
-
 From this we can see that the proportion of obesity does seem to vary across education levels, with the higher that level, the lower the proportion of obesity appears to be.
 
 # Formal Analysis {#sec-FA}
@@ -212,15 +211,11 @@ From this we can see that the proportion of obesity does seem to vary across edu
 
 The logistic regression model is given by:
 
-```{=tex}
 \begin{align}
 y_i &\sim  \mathrm{Bin}(n_i,p_i) \\
-\end{align}
-\begin{align}
+\end{align} \begin{align}
 logit(p_i) = \alpha + \beta_{year2009} \cdot \mathbb{I}_{\mathrm{year2009}} + \beta_{year2010} \cdot \mathbb{I}_{\mathrm{year2010}} + \beta_{year2011} \cdot \mathbb{I}_{\mathrm{year2011}} + \beta_{year2012} \cdot \mathbb{I}_{\mathrm{year2012}}
 \end{align}
-```
-
 
 where $\mathbb{I}_{\mathrm{year}}(x)$ is an indicator function such that
 
@@ -230,8 +225,7 @@ $$
 1 ~ \text{if the xth observation belongs to the particular year}, \\
 0 ~ \text{otherwise}
 \end{cases}
-$$
-Where:\
+$$ Where:\
 - $\text logit(p_i)$ is the log-odds of the probability of being classified as obese.\
 - $\alpha$ is the intercept (baseline log-odds when predictors are zero, i.e., the Year 2008).\
 - $\beta_1, \beta_2, \beta_3, \beta_4$ are the coefficients for the indicator variables corresponding to Years 2009, 2010, 2011, and 2012, respectively.\
@@ -239,13 +233,15 @@ Where:\
 ```{r}
 #| message: false
 #| warning: false
-data$Obese <- ifelse(data$Obese == "Yes", 1, 0)
 
 model <- glm(Obese ~ Year, data = data, family = binomial)
 
 
 model %>%
   tidy(conf.int = T) %>%
+  mutate(p.value = ifelse(p.value < 0.001, 
+                          formatC(p.value, format = "e", digits = 2), 
+                          round(p.value, 3))) %>%
   kable(format = "html", digits = 3, caption = "Logistic Regression Summary") %>%
   kable_styling(
     full_width = FALSE, 
@@ -253,18 +249,19 @@ model %>%
   ) %>% column_spec(2, bold = TRUE, color = "blue") %>% 
   column_spec(3:5, color = "red")
 
+model_table <- model %>% 
+  tidy(exponentiate = TRUE)
 ```
 
-The fitted model is: 
-$$
+The fitted model is: $$
 logit(p_i) = -0.867901  -0.037769 \cdot \mathbb{I}_{\mathrm{year2009}} + 0.043062 \cdot \mathbb{I}_{\mathrm{year2010}} + 0.003814 \cdot \mathbb{I}_{\mathrm{year2011}} + 0.001743 \cdot \mathbb{I}_{\mathrm{year2012}}
 $$
 
-- We have fitted a logistic regression model to observe the relation between the years and obesity prevalance in Scotland over the years 2008-2012. \
-- The baseline category is taken to be Year 2008. From the output odds model summary, we can see that the odds of being obese in Year 2008 was 0.42.\
-- The coefficients for Year2009, Year2010, Year2011, Year2012 represents the change in odds of being obese compared to the baseline year 2008. \
-- For Year 2009, the odds ratio of obesity compared to the baseline year (2008) is 0.963. This would indicate that the odds of being classified as obese in 2009 were 3.7% lower than in 2008. \
-- For Year 2010, the odds ratio of obesity compared to the baseline year (2008) is 1.044. This indicates that the odds of being classified as obese in 2010 were 4.4% higher than in 2008. In other words, individuals in the year 2010 had a slightly increased likelihood of being obese compared to those in the baseline year. \
+-   We have fitted a logistic regression model to observe the relation between the years and obesity prevalance in Scotland over the years 2008-2012.\
+-   The baseline category is taken to be Year 2008. From the output odds model summary, we can see that the odds of being obese in Year 2008 was 0.42.\
+-   The coefficients for Year2009, Year2010, Year2011, Year2012 represents the change in odds of being obese compared to the baseline year 2008.\
+-   For Year 2009, the odds ratio of obesity compared to the baseline year (2008) is 0.963. This would indicate that the odds of being classified as obese in 2009 were 3.7% lower than in 2008.\
+-   For Year 2010, the odds ratio of obesity compared to the baseline year (2008) is 1.044. This indicates that the odds of being classified as obese in 2010 were 4.4% higher than in 2008. In other words, individuals in the year 2010 had a slightly increased likelihood of being obese compared to those in the baseline year.\
 
 Here are the odds plot of out logistic regression:
 
@@ -330,7 +327,7 @@ plot(models, scale = "Cp", fig.dim = c(3, 1))
 
 As these two processes are in agreement, we fit the following model to investigate potential differences in obesity levels by age, socio-economic status or lifestyle factors. Both these processes agree that gender does not seem to be a significant predictor, which combined with the findings in our exploratory analysis means we caan feasibly disregard it.
 
-$$ y_i \sim \text{Bernoulli}(p_i)$$ 
+$$ y_i \sim \text{Bernoulli}(p_i)$$
 
 $$\text{log}(\frac{p_i}{1-p_i}) = 
 \alpha + \beta_\text{age} \cdot x_i + 
@@ -341,20 +338,19 @@ $$\text{log}(\frac{p_i}{1-p_i}) =
 \beta_\text{HNC/D} \cdot \mathbb{I}_\text{HNC/D} +
 \beta_\text{other} \cdot \mathbb{I}_\text{other}$$
 
-where 
+where
 
-- $p_i$ is the probability of observation $\text{i}$ being classified as obese
-- $\alpha$ is the intercept term of our model
-- $\beta_\text{age}$ is the coefficient of our continuous variable, age
-- $x_i$ is the age of observation $\text{i}$
-- $\beta_j$ is the additional intercept of an observation that falls into category $\text{j}$
-- $\mathbb{I}_j$ is the indicator variable for category j such that 
+-   $p_i$ is the probability of observation $\text{i}$ being classified as obese
+-   $\alpha$ is the intercept term of our model
+-   $\beta_\text{age}$ is the coefficient of our continuous variable, age
+-   $x_i$ is the age of observation $\text{i}$
+-   $\beta_j$ is the additional intercept of an observation that falls into category $\text{j}$
+-   $\mathbb{I}_j$ is the indicator variable for category j such that
 
 $$
 \mathbb{I}_j = \cases{1 & \text{for observations that fall into category j} \\
 0 & \text{otherwise}}
-$$
-With our model now fitted, we can obtain our model summary table of the odds estimates of each predictor.
+$$ With our model now fitted, we can obtain our model summary table of the odds estimates of each predictor.
 
 ```{r}
 #| tbl-cap: Model output of odds, with 95% confidence interval
@@ -439,7 +435,7 @@ performance::check_model(model_1, panel = T) %>%
   plot() + patchwork::plot_layout(3, 2)
 ```
 
-From this output, we see that all of our assumptions appear to hold, except for the binned residuals plot, where ~69% of our binned residuals fall outwith the error bounds. This could be due to a number of reasons, such as under-fitting, potential interaction terms not yet considered, or an absence of important explanatory variables not included in our data set. It is important to note that ~70% of our observations are in the non-obese category, which could explain this result.
+From this output, we see that all of our assumptions appear to hold, except for the binned residuals plot, where \~69% of our binned residuals fall outwith the error bounds. This could be due to a number of reasons, such as under-fitting, potential interaction terms not yet considered, or an absence of important explanatory variables not included in our data set. It is important to note that \~70% of our observations are in the non-obese category, which could explain this result.
 
 Continuing, we can also further investigate the performance of our model by plotting the model's ROC curve.
 
@@ -534,7 +530,7 @@ These metrics reveal that our model's true negative rate of prediction is an acc
 
 ## Differences
 
-In conclusion, our model struggled to effectively differentiate between obese and non-obese observations based on the provided predictors. Our exploratory analysis suggested no notable difference in obesity levels between genders, which was confirmed when fitting our model. While our model appears to suggest that age, education level and vegetable consumption are all statistically significant, it is possible that another model with extra explanatory variables could have greater predictive power, which could be worth future analysis. Additionally, it could be worth considering whether our obtained results would have differed had we split our data into a training and testing split initially. 
+In conclusion, our model struggled to effectively differentiate between obese and non-obese observations based on the provided predictors. Our exploratory analysis suggested no notable difference in obesity levels between genders, which was confirmed when fitting our model. While our model appears to suggest that age, education level and vegetable consumption are all statistically significant, it is possible that another model with extra explanatory variables could have greater predictive power, which could be worth future analysis. Additionally, it could be worth considering whether our obtained results would have differed had we split our data into a training and testing split initially.
 
 ## Prevalence
 
