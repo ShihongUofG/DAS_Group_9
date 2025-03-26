@@ -18,7 +18,7 @@ header-includes:
 #| echo: false
 #| warning: false
 #| message: false
-
+#| eval: true
 library(ggplot2)
 library(tidyverse)
 library(tidymodels)
@@ -27,8 +27,9 @@ library(MASS)
 library(patchwork)
 library(moderndive)
 library(sjPlot)
-library(kableExtra)
-
+library(broom)       
+library(knitr)       
+library(kableExtra) 
 ```
 
 # Introduction {#sec-intro}
@@ -48,6 +49,10 @@ $$
 First we will produce a line plot with data points to illustrate the trend in obesity prevalence over the years.
 
 ```{r}
+#| echo: false
+#| eval: true
+#| label: fig-lineplot1
+#| fig-cap: Obesity Prevalence Over Time in Scotland
 #| fig-width: 5
 #| fig-height: 3.25
 #| fig-align: center
@@ -67,8 +72,7 @@ prevalence <- data %>%
 ggplot(prevalence, aes(x = Year, y = prevalence)) +
   geom_line(group = 1, color = "black") +
   geom_point(size = 3, color = "red") +
-  labs(title = "Obesity Prevalence Over Time in Scotland",
-       x = "Year",
+  labs(x = "Year",
        y = "Prevalence (in %)")
 ```
 
@@ -77,14 +81,16 @@ From the graph we can see that the prevalence appears to fluctuate year to year,
 Also we will produce a bar plot to display the count of individuals classified as obese versus not obese for each survey year.
 
 ```{r}
+#| echo: false
+#| eval: true
+#| label: fig-Barplot1
+#| fig-cap: Count of Obesity Classification by Year
 #| fig-width: 5
 #| fig-height: 3.25
 #| fig-align: center
-
 ggplot(data, aes(x = Year, fill = Obese)) +
   geom_bar(position = "dodge") +
-  labs(title = "Count of Obesity Classification by Year",
-       x = "Year",
+  labs(x = "Year",
        y = "Count") +
   scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
 ```
@@ -206,14 +212,18 @@ From this we can see that the proportion of obesity does seem to vary across edu
 
 The logistic regression model is given by:
 
+```{=tex}
 \begin{align}
 y_i &\sim  \mathrm{Bin}(n_i,p_i) \\
 \end{align}
 \begin{align}
 logit(p_i) = \alpha + \beta_{year2009} \cdot \mathbb{I}_{\mathrm{year2009}} + \beta_{year2010} \cdot \mathbb{I}_{\mathrm{year2010}} + \beta_{year2011} \cdot \mathbb{I}_{\mathrm{year2011}} + \beta_{year2012} \cdot \mathbb{I}_{\mathrm{year2012}}
 \end{align}
+```
+
 
 where $\mathbb{I}_{\mathrm{year}}(x)$ is an indicator function such that
+
 $$
 \mathbb{I}_{\mathrm{year}}(x) = 
 \begin{cases}
@@ -229,32 +239,20 @@ Where:\
 ```{r}
 #| message: false
 #| warning: false
-data$Obese <- as.factor(data$Obese)
+data$Obese <- ifelse(data$Obese == "Yes", 1, 0)
+
 model <- glm(Obese ~ Year, data = data, family = binomial)
 
-# Create a styled kable table
+
 model %>%
   tidy(conf.int = T) %>%
   kable(format = "html", digits = 3, caption = "Logistic Regression Summary") %>%
   kable_styling(
     full_width = FALSE, 
     bootstrap_options = c("striped", "hover", "condensed")
-  ) 
-#%>%
-#  column_spec(2, bold = TRUE, color = "blue") %>%
-#  column_spec(3:5, color = "red")
-```
+  ) %>% column_spec(2, bold = TRUE, color = "blue") %>% 
+  column_spec(3:5, color = "red")
 
-
-```{r}
-#| message: false
-#| warning: false
-#| fig-width: 6
-#| fig-height: 3.75
-#| fig-align: center
-
-plot_model(model, show.values = TRUE,
-           title = "Odds (being obese compared to Year 2008)", show.p = FALSE)
 ```
 
 The fitted model is: 
@@ -263,12 +261,31 @@ logit(p_i) = -0.867901  -0.037769 \cdot \mathbb{I}_{\mathrm{year2009}} + 0.04306
 $$
 
 - We have fitted a logistic regression model to observe the relation between the years and obesity prevalance in Scotland over the years 2008-2012. \
-- The baseline category is taken to be Year 2008. On exponentiating the logistic model summary, we can see that the odds of being obese in Year 2008 was 0.42.\
-- The coefficients for Year2009, Year2010, Year2011, Year2012 represents the change in odds of being obese compared to the baseline year 2008.\
+- The baseline category is taken to be Year 2008. From the output odds model summary, we can see that the odds of being obese in Year 2008 was 0.42.\
+- The coefficients for Year2009, Year2010, Year2011, Year2012 represents the change in odds of being obese compared to the baseline year 2008. \
 - For Year 2009, the odds ratio of obesity compared to the baseline year (2008) is 0.963. This would indicate that the odds of being classified as obese in 2009 were 3.7% lower than in 2008. \
 - For Year 2010, the odds ratio of obesity compared to the baseline year (2008) is 1.044. This indicates that the odds of being classified as obese in 2010 were 4.4% higher than in 2008. In other words, individuals in the year 2010 had a slightly increased likelihood of being obese compared to those in the baseline year. \
 
-## Differences in Obesity Through The Years
+Here are the odds plot of out logistic regression:
+
+```{r}
+#| echo: false
+#| message: false
+#| eval: true
+#| label: fig-OddsPlot1
+#| fig-cap: Odds (being obese compared to Year 2008)
+#| fig-width: 6
+#| fig-height: 4
+#| fig-align: center
+plot_model(model, show.values = TRUE, show.p = FALSE)
+```
+
+We can observe from @fig-OddsPlot1 that:
+
+The plotted values (0.96, 1.04, 1.00, and 1.00) are all very close to 1. This suggests that, compared to the reference year, the odds of being obese in these specific years do not differ dramatically.\
+Because the odds ratios are near 1, there is likely no strong evidence that obesity prevalence changed significantly across these years. Any differences (e.g., 0.96 vs. 1.04) are quite small and may not be statistically or practically meaningful.
+
+## Differences
 
 We can attempt to fit a logistic regression model to the data set. With the `stepAIC` function from the `MASS` library, we can perform stepwise model selection to help decide which predictors to include in our GLM.
 
@@ -518,3 +535,9 @@ These metrics reveal that our model's true negative rate of prediction is an acc
 ## Differences
 
 In conclusion, our model struggled to effectively differentiate between obese and non-obese observations based on the provided predictors. Our exploratory analysis suggested no notable difference in obesity levels between genders, which was confirmed when fitting our model. While our model appears to suggest that age, education level and vegetable consumption are all statistically significant, it is possible that another model with extra explanatory variables could have greater predictive power, which could be worth future analysis. Additionally, it could be worth considering whether our obtained results would have differed had we split our data into a training and testing split initially. 
+
+## Prevalence
+
+The exploratory analysis, through line and bar plots, suggested that while obesity prevalence fluctuated across the years, there was no clear upward or downward trend. This observation was supported by the logistic regression analysis, which used 2008 as the baseline year. The model’s odds ratios for subsequent years (2009–2012) were all very close to 1 and none of the differences reached statistical significance.
+
+Hence we can conclude that over the period studied (2008-2012) there was no evidence of a significant change in obesity prevalence in Scotland. Future studies should consider longer time frames and incorporate additional covariates to better capture potential trends and identify factors that might influence obesity rates more effectively.
