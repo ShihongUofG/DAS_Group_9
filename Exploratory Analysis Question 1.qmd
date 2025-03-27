@@ -80,14 +80,14 @@ From the graph we can see that the prevalence appears to fluctuate year to year,
 Also we will produce a bar plot to display the count of individuals classified as obese versus not obese for each survey year.
 
 ```{r}
-
 #| echo: false
 #| eval: true
-#| label: fig-Barplot1
+#| label: fig-barplot1
 #| fig-cap: Count of Obesity Classification by Year
-#| fig-width: 5
-#| fig-height: 1
+#| fig-width: 6
+#| fig-height: 3.75
 #| fig-align: center
+
 ggplot(data, aes(x = Year, fill = Obese)) +
   geom_bar(position = "dodge") +
   labs(x = "Year",
