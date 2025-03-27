@@ -13,7 +13,7 @@ These are the columns in the data set:
 
 # Questions of Interest
 The main questions of interests we are aiming to analyse are:
-- Has the body mass index (BMI) in Scotland changed iver the given years of the Scottish Health Survey?
-- Are there any differences in obesity by age, gender, socio-economic status ir lifestyle factors?
+- Has the body mass index (BMI) in Scotland changed over the given years of the Scottish Health Survey?
+- Are there any differences in obesity by age, gender, socio-economic status or lifestyle factors?
 
 
