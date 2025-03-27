@@ -152,44 +152,29 @@ legend <- get_legend(ggplot(data, aes(x=Sex, fill=Obese))+
   scale_fill_manual(values = c("dodgerblue4", "firebrick3")))
 ```
 
-We want to see whether initial plots may give an indication to if there is in fact a difference in obesity levels across the other variables in the survey. We will begin by looking at fruit and veg intake to see if there are differences in these areas.We will also look at variables 'sex' and 'year' to check the differences.
+We want to see whether initial plots may give an indication to if there is in fact a difference in obesity levels across the other variables in the survey. We will begin by looking at fruit and veg intake as well as the year and sex to see if there are differences in these areas.
 
 ```{r}
-#| label: exp-plots 1
-#| fig-cap: Proportion of Obesity by Fruit and Veg intake
-#| fig-width: 5
+#| label: exp-plots-1
+#| fig-cap: Proportion of Obesity by Year, Sex, Veg Intake and Fruit Intake
+#| fig-width: 8
 #| fig-height: 4
 #| fig-align: center
 
-gridExtra::grid.arrange(plot.fruit + theme(legend.position="none"), 
+
+gridExtra::grid.arrange(arrangeGrob(plot.year + theme(legend.position="none"),
+                        plot.sex + theme(legend.position="none"),
                         plot.veg + theme(legend.position="none"),
+                        plot.fruit + theme(legend.position = "none"), 
+                                    nrow = 2),
                         legend,
                         ncol = 3)
-```
-
-We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables. Next lets look at differences across years and sex.
-
-```{r}
-#| label: exp-plots 2
-#| fig-cap: Proportion of Obesity by Year and Sex
-#| fig-width: 8
-#| fig-height: 3.25
-#| fig-align: center
-
-gridExtra::grid.arrange(plot.year + theme(legend.position="none"),
-                        plot.sex + theme(legend.position="none"),
-                        plot.veg + theme(legend.position = "none"), 
-                                    plot.fruit + theme(legend.position = "none"), 
-                                    ncol = 2),
-                        legend,
-                        ncol = 2,
-                        widths = c(3, 1))
 ```
 
 We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables. We can see that the proportion of obesity across years 2008-2012 do fluctuate slightly but not a lot so we will need to look at this further. There appears to be almost no difference in levels of obesity across males and females though, as these proportions are almost identical. Next we shall look at whether there are differences in obesity levels across ages.
 
 ```{r}
-#| label: exp-plots 2
+#| label: exp-plots-2
 #| fig-cap: Boxplot and Density plot of age
 #| fig-width: 5
 #| fig-height: 2.5
@@ -207,7 +192,7 @@ gridExtra::grid.arrange(arrangeGrob(plot.age1 + theme(legend.position = "none"),
 We can see here that the age of obese people tends to be slightly older than those who are not obese, however we cannot tell whether this is a significant difference from these plots. Finally, we will look at obesity levels across different levels of education.
 
 ```{r}
-#| label: exp-plots 4
+#| label: exp-plots-3
 #| fig-cap: Proportion of Obesity across Education Levels
 #| fig-width: 5
 #| fig-height: 2.5
