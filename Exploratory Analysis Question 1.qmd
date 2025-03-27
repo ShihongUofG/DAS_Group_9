@@ -28,6 +28,7 @@ library(patchwork)
 library(moderndive)
 library(sjPlot)
 library(kableExtra)
+library(gridExtra)
 
 ```
 
@@ -87,7 +88,7 @@ Also we will produce a bar plot to display the count of individuals classified a
 #| label: fig-Barplot1
 #| fig-cap: Count of Obesity Classification by Year
 #| fig-width: 5
-#| fig-height: 2.5
+#| fig-height: 1
 #| fig-align: center
 
 ggplot(data, aes(x = Year, fill = Obese)) +
@@ -144,39 +145,25 @@ plot.sex <- ggplot(data, aes(x=Sex, fill=Obese))+
 legend <- plot.fruit %>% ggpubr::get_legend() %>% ggpubr::as_ggplot()
 ```
 
-We want to see whether initial plots may give an indication to if there is in fact a difference in obesity levels across the other variables in the survey. We will begin by looking at fruit and veg intake to see if there are differences in these areas.
+We want to see whether initial plots may give an indication to if there is in fact a difference in obesity levels across the other variables in the survey. We will begin by looking at fruit and veg intake as well as sex and year to see if there are differences in these areas.
 
 ```{r}
 #| label: exp-plots 1
 #| fig-cap: Proportion of Obesity by Fruit and Veg intake
-#| fig-width: 8
-#| fig-height: 3.25
-#| fig-align: center
-
-gridExtra::grid.arrange(plot.fruit + theme(legend.position="none"), 
-                        plot.veg + theme(legend.position="none"),
-                        legend,
-                        ncol = 3)
-```
-
-We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables.
-
-Next lets look at differences across years and sex.
-
-```{r}
-#| label: exp-plots 2
-#| fig-cap: Proportion of Obesity by Year, Sex, Veg Intake and Fruit Intake
 #| fig-width: 5
-#| fig-height: 2.5
+#| fig-height: 4
 #| fig-align: center
 
-gridExtra::grid.arrange(plot.year + theme(legend.position="none"),
+gridExtra::grid.arrange(arrangeGrob(plot.fruit + theme(legend.position="none"), 
+                        plot.veg + theme(legend.position="none"),
+                        plot.year + theme(legend.position="none"),
                         plot.sex + theme(legend.position="none"),
+                        nrow=2),
                         legend,
-                        ncol = 3)
+                        ncol = 2)
 ```
 
-Now we can see that the proportion of obesity across years 2008-2012 do fluctuate slightly but not a lot so we will need to look at this further. There appears to be almost no difference in levels of obesity across males and females though, as these proportions are almost identical.
+We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables. We can also see that the proportion of obesity across years 2008-2012 do fluctuate slightly but not a lot so we will need to look at this further. There appears to be almost no difference in levels of obesity across males and females though, as these proportions are almost identical.
 
 Next we shall look at whether there are differences in obesity levels across ages.
 
@@ -278,7 +265,6 @@ $$
 - For Year 2009, the odds ratio of obesity compared to the baseline year (2008) is 0.963. This would indicate that the odds of being classified as obese in 2009 were 3.7% lower than in 2008. \
 - For Year 2010, the odds ratio of obesity compared to the baseline year (2008) is 1.044. This indicates that the odds of being classified as obese in 2010 were 4.4% higher than in 2008. In other words, individuals in the year 2010 had a slightly increased likelihood of being obese compared to those in the baseline year. \
 
-## Differences in Obesity Through The Years
 Here are the odds plot of out logistic regression:
 
 ```{r}
@@ -298,7 +284,7 @@ We can observe from @fig-OddsPlot1 that:
 The plotted values (0.96, 1.04, 1.00, and 1.00) are all very close to 1. This suggests that, compared to the reference year, the odds of being obese in these specific years do not differ dramatically.\
 Because the odds ratios are near 1, there is likely no strong evidence that obesity prevalence changed significantly across these years. Any differences (e.g., 0.96 vs. 1.04) are quite small and may not be statistically or practically meaningful.
 
-## Differences
+## Differences in Obesity Through The Years
 
 We can attempt to fit a logistic regression model to the data set. With the `stepAIC` function from the `MASS` library, we can perform stepwise model selection to help decide which predictors to include in our GLM.
 
@@ -331,7 +317,7 @@ model_1 <- glm(Obese ~ Age + Education + Veg,
                data = data)
 
 models <- leaps::regsubsets(Obese ~ . , data = data)
-plot(models, scale = "Cp")
+#plot(models, scale = "Cp")
 
 #Can't change x labels in regsubsets plot, so making new data set w diff. names
 
@@ -341,7 +327,7 @@ levels(data2$Education) <- c("Degree+", "Higher", "HNC/D",
 colnames(data2)[3] <- "Ed" 
 
 models <- leaps::regsubsets(Obese ~ . , data = data2)
-plot(models, scale = "Cp", fig.dim = c(2, 0.67))
+#plot(models, scale = "Cp", fig.dim = c(2, 0.67))
 
 ```
 
@@ -444,119 +430,10 @@ gridExtra::grid.arrange(pred_plot_age,
 
 ```
 
-We first note that our findings from the model output table relating to trends in odds / probabilities for each variable are confirmed here. However, we also can note that our model seems hesitant to assign a probability greater than 0.5 to any observation in our data set. To expand on this, we first can check our model assumptions via the `performance` library.
-
-```{r}
-#| label: fig-diff-asump-plot
-#| fig-cap: Various diagnostic plots for checking our model assumptions
-#| eval: false
-#| echo: true
-
-performance::check_model(model_1, panel = T) %>%
-  plot() + patchwork::plot_layout(3, 2)
-```
-
-From this output, we see that all of our assumptions appear to hold, except for the binned residuals plot, where ~69% of our binned residuals fall outwith the error bounds. This could be due to a number of reasons, such as under-fitting, potential interaction terms not yet considered, or an absence of important explanatory variables not included in our data set. It is important to note that ~70% of our observations are in the non-obese category, which could explain this result.
-
-Continuing, we can also further investigate the performance of our model by plotting the model's ROC curve.
-
-```{r}
-#| label: fig-diff-roc-plot
-#| fig-cap: ROC curve of our classification model
-#| fig-cap-location: top
-#| fig-width: 5
-#| fig-height: 2.5
-#| fig-align: center
-
-model_1_pred <- model_1 %>%
-  augment(type.predict = c("response"))
-
-model_pred_0.5 <- model_1_pred %>%
-  mutate(predicted_class = 
-           factor(ifelse(.fitted > 0.5, "Yes", "No")))
-
-roc_model <- roc_curve(model_pred_0.5,
-                         truth = Obese,
-                         .fitted,
-                         event_level = "second")  %>% 
-  mutate(youden_j = sensitivity + specificity - 1)
-
-plot(x = 1:0, y = 0:1, type = "n", 
-     xlab = "1 - Specificity", ylab = "Sensitivity", main = "ROC plot")
-lines(x = 1 - roc_model$specificity, y = roc_model$sensitivity,
-      type = "l", lwd = 2)
-abline(a = 0, b = 1)
-#abline(v = c(0.464, 0.269))
-```
-
-We see from @fig-diff-roc-plot that as a whole our model seems to be slightly better than just randomly guessing, but we can further examine this by looking at the observations predicted to be most likely to be obese.
-
-```{r}
-#| label: fig-diff-pred-model
-#| fig-cap: Predicted values of observations
-#| fig-cap-location: top
-
-pred_tab_head <- model_1_pred[order(model_1_pred$.fitted, decreasing = T),] %>%
-  dplyr::select(Obese, Age, Education, Veg, .fitted) %>%
-  slice_head(n = 5)
-pred_tab_head$.fitted <- round(pred_tab_head$.fitted, 3)
-
-pred_tab_head %>%
-  gt() %>%
-  cols_label(
-    .fitted = html("Pred. Prob.")
-  )
-```
-
-@fig-diff-pred-model shows that our model never predicts an observation to have a probability of obesity greater than 48.1%. So to examine the predictive power of our model, we must set a threshold below 0.5. According to the Youden index summary metric, the threshold that maximises the specificity and sensitivity is 0.269. At this threshold, we obtain the following confusion matrix and performance metrics, seen in @tbl-diff-mod-evals.
-
-```{r}
-model_pred_0.269 <- model_1_pred %>%
-  mutate(predicted_class = 
-           factor(ifelse(.fitted > 0.269, "Yes", "No")))
-
-eval_metric <- metric_set(accuracy,sensitivity,specificity,ppv,npv)
-
-```
-
-```{r}
-#| label: tbl-diff-mod-evals
-#| tbl-cap: Confusion matrix and predictive performance metrics for our model at a threshold of 0.269
-#| tbl-cap-location: top
-#| message: false
-#| layout-ncol: 2
-
-#Can't get these plots to render side-by-side 
-
-conf_mat(model_pred_0.269, 
-         truth = Obese, 
-         estimate = predicted_class)[[1]] %>%
-  as.data.frame() %>%
-  kable(format = "html", align = "l")  %>%
-  kable_styling(full_width = FALSE, position = "float_left")
-
-eval_metric(model_pred_0.269,
-            truth = Obese,
-            estimate = predicted_class,  
-            event_level = "second") %>% 
-  dplyr::select(.metric, .estimate) %>%
-  gt() %>%
-  cols_label(
-    .metric = html("Metric"),
-    .estimate = html("Estimate"))%>%
-  pivot_wider(names_from = .metric, values_from = .estimate) %>%
-  kable(format = "html", align = "r")  %>%
-  kable_styling(full_width = FALSE, position = "float_right")
-```
-
-These metrics reveal that our model's true negative rate of prediction is an acceptable level, it struggles to correctly predict when an observation is obese, so our model struggles to differentiate obesity observations based on age, socio-economic status or lifestyle factors.
+We first note that our findings from the model output table relating to trends in odds / probabilities for each variable are confirmed here. However, we also can note that our model seems hesitant to assign a probability greater than 0.5 to any observation in our data set. 
 
 # Conclusions {#sec-con}
 
-## Prevalance
+The exploratory analysis, through line and bar plots, suggested that while obesity prevalence fluctuated across the years, there was no clear trend. This observation was supported by the logistic regression analysis. The model’s odds ratios for subsequent years (2009–2012) were all very close to 1 and none of the differences reached statistical significance. Hence we can conclude that over the period studied there was no evidence of a significant change in obesity prevalence in Scotland.
 
-
-
-## Differences
-
-In conclusion, our model struggled to effectively differentiate between obese and non-obese observations based on the provided predictors. Our exploratory analysis suggested no notable difference in obesity levels between genders, which was confirmed when fitting our model. While our model appears to suggest that age, education level and vegetable consumption are all statistically significant, it is possible that another model with extra explanatory variables could have greater predictive power, which could be worth future analysis. Additionally, it could be worth considering whether our obtained results would have differed had we split our data into a training and testing split initially. 
+Our model struggled to effectively differentiate between obese and non-obese observations based on the provided predictors. Our exploratory analysis suggested no notable difference in obesity levels between genders, which was confirmed when fitting our model. While our model appears to suggest that age, education level and vegetable consumption are all statistically significant, it is possible that another model with extra explanatory variables could have greater predictive power, which could be worth future analysis. Future studies should examine the weak residuals we found in the model and further examine if there is a link with the binned residuals and distribution of obese to non-obese cases in the study and see if classifiers with a different threshold may help improve the residuals.
