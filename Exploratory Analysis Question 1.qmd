@@ -157,7 +157,7 @@ We want to see whether initial plots may give an indication to if there is in fa
 ```{r}
 #| label: exp-plots-1
 #| fig-cap: Proportion of Obesity by Year, Sex, Veg Intake and Fruit Intake
-#| fig-width: 8
+#| fig-width: 5
 #| fig-height: 4
 #| fig-align: center
 
@@ -168,7 +168,9 @@ gridExtra::grid.arrange(arrangeGrob(plot.year + theme(legend.position="none"),
                         plot.fruit + theme(legend.position = "none"), 
                                     nrow = 2),
                         legend,
-                        ncol = 3)
+                        ncol = 2,
+                        widths = c(4,1)
+                        )
 ```
 
 We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables. We can see that the proportion of obesity across years 2008-2012 do fluctuate slightly but not a lot so we will need to look at this further. There appears to be almost no difference in levels of obesity across males and females though, as these proportions are almost identical. Next we shall look at whether there are differences in obesity levels across ages.
