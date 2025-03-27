@@ -261,7 +261,7 @@ $$
 -   For Year 2009, the odds ratio of obesity compared to the baseline year (2008) is 0.963. This would indicate that the odds of being classified as obese in 2009 were 3.7% lower than in 2008.\
 -   For Year 2010, the odds ratio of obesity compared to the baseline year (2008) is 1.044. This indicates that the odds of being classified as obese in 2010 were 4.4% higher than in 2008. In other words, individuals in the year 2010 had a slightly increased likelihood of being obese compared to those in the baseline year.\
 
-Here are the odds plot of out logistic regression:
+Here are the odds plot of our logistic regression:
 
 ```{r}
 #| echo: false
