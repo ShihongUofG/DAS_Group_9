@@ -544,3 +544,4 @@ In conclusion, our model struggled to effectively differentiate between obese an
 The exploratory analysis, through line and bar plots, suggested that while obesity prevalence fluctuated across the years, there was no clear upward or downward trend. This observation was supported by the logistic regression analysis, which used 2008 as the baseline year. The model’s odds ratios for subsequent years (2009–2012) were all very close to 1 and none of the differences reached statistical significance.
 
 Hence we can conclude that over the period studied (2008-2012) there was no evidence of a significant change in obesity prevalence in Scotland. Future studies should consider longer time frames and incorporate additional covariates to better capture potential trends and identify factors that might influence obesity rates more effectively.
+
