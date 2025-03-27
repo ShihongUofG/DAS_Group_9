@@ -27,6 +27,7 @@ library(moderndive)
 library(sjPlot)
 library(kableExtra)
 library(gridExtra)
+library(performance)
 
 ```
 
@@ -109,12 +110,12 @@ plot.edu <- ggplot(data, aes(x = Education, fill = Obese)) +
 
 plot.veg <- ggplot(data, aes(x = Veg, fill = Obese)) +
   geom_bar(position = "fill") +
-  labs(title = "Obesity and Vegetable Intake", x = "Vegetable Intake", y = "Proportion")+
+  labs(x = "Vegetable Intake", y = "Proportion")+
   scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
 
 plot.fruit <- ggplot(data, aes(x = Fruit, fill = Obese)) +
   geom_bar(position = "fill") +
-  labs(title = "Obesity and Fruit Intake", x = "Fruit Intake", y = "Proportion")+
+  labs(x = "Fruit Intake", y = "Proportion")+
   scale_fill_manual(values=c("dodgerblue4", "firebrick3"))
 
 plot.age1 <- ggplot(data, aes(y = (Age), x = Obese, fill = Obese)) +
@@ -384,8 +385,8 @@ We can examine our model's predictive performance by first examining the below p
 #| label: fig-diff-pred-plot
 #| fig-cap: Predictive plots of obesity against each explanatory variable
 #| fig-cap-location: top
-#| fig-width: 5
-#| fig-height: 2.5
+#| fig-width: 8
+#| fig-height: 4
 #| fig-align: center
 
 pred_plot_age <- plot_model(model_1, 
@@ -414,10 +415,14 @@ pred_plot_veg <- plot_model(model_1,
            axis.title = c("Vegetable intake?", 
                           "Obesity probability"))
 
-gridExtra::grid.arrange(pred_plot_age,
+res_plot <- binned_residuals(model_1) %>% plot()
+
+gridExtra::grid.arrange(arrangeGrob(pred_plot_age,
                         pred_plot_edu,
                         pred_plot_veg,
-                        ncol = 3, nrow = 1)
+                        nrow=1, ncol=3),
+                        res_plot,
+                        ncol = 1, nrow = 2)
 
 #nrow(data[data$Obese == "Yes",]) / nrow(data)
 
