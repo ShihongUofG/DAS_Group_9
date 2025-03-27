@@ -46,6 +46,17 @@ $$
 First we will produce a line plot with data points to illustrate the trend in obesity prevalence over the years.
 
 ```{r}
+<<<<<<< Updated upstream
+=======
+#| echo: false
+#| eval: true
+#| label: fig-lineplot1
+#| fig-cap: Obesity Prevalence Over Time in Scotland
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+
+>>>>>>> Stashed changes
 data <- read.csv("DAProject1.csv")
 
 for (i in c(2:7)) {
@@ -72,6 +83,16 @@ From the graph we can see that the prevalence appears to fluctuate year to year,
 Also we will produce a bar plot to display the count of individuals classified as obese versus not obese for each survey year.
 
 ```{r}
+<<<<<<< Updated upstream
+=======
+#| echo: false
+#| eval: true
+#| label: fig-Barplot1
+#| fig-cap: Count of Obesity Classification by Year
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+>>>>>>> Stashed changes
 ggplot(data, aes(x = Year, fill = Obese)) +
   geom_bar(position = "dodge") +
   labs(title = "Count of Obesity Classification by Year",
@@ -131,7 +152,16 @@ gridExtra::grid.arrange(plot.fruit, plot.veg, ncol = 2)
 
 We can see here that the proportions of obesity appear to be almost in the same in fruit in take, although there may be a slight difference in whether a person consumes vegetables.
 
+<<<<<<< Updated upstream
 Next lets look at differences across years and sex.
+=======
+```{r}
+#| label: exp-plots 2
+#| fig-cap: Proportion of Obesity by Year, Sex, Veg Intake and Fruit Intake
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+>>>>>>> Stashed changes
 
 ```{r}
 #| label: exp plots 2
@@ -147,6 +177,12 @@ Next we shall look at whether there are differences in obesity levels across age
 ```{r}
 #| label: exp plots 3
 #| fig-cap: Boxplot and Density plot of age
+<<<<<<< Updated upstream
+=======
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+>>>>>>> Stashed changes
 
 gridExtra::grid.arrange(plot.age1, plot.age2, ncol = 2)
 ```
@@ -156,8 +192,16 @@ We can see here that the age of obese people tends to be slightly older than tho
 Finally, we will look at obesity levels across different levels of education.
 
 ```{r}
+<<<<<<< Updated upstream
 #| label: exp plots 4
 #| fig-cap: Proportion of Obesity across Education Levls
+=======
+#| label: exp-plots 4
+#| fig-cap: Proportion of Obesity across Education Levels
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+>>>>>>> Stashed changes
 
 gridExtra::grid.arrange(plot.edu, ncol = 1)
 ```
@@ -230,7 +274,30 @@ $$
 - For Year 2009, the odds ratio of obesity compared to the baseline year (2008) is 0.963. This would indicate that the odds of being classified as obese in 2009 were 3.7% lower than in 2008. \
 - For Year 2010, the odds ratio of obesity compared to the baseline year (2008) is 1.044. This indicates that the odds of being classified as obese in 2010 were 4.4% higher than in 2008. In other words, individuals in the year 2010 had a slightly increased likelihood of being obese compared to those in the baseline year. \
 
+<<<<<<< Updated upstream
 ## Differences in Obesity Through The Years
+=======
+Here are the odds plot of out logistic regression:
+
+```{r}
+#| echo: false
+#| message: false
+#| eval: true
+#| label: fig-OddsPlot1
+#| fig-cap: Odds (being obese compared to Year 2008)
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+plot_model(model, show.values = TRUE, show.p = FALSE)
+```
+
+We can observe from @fig-OddsPlot1 that:
+
+The plotted values (0.96, 1.04, 1.00, and 1.00) are all very close to 1. This suggests that, compared to the reference year, the odds of being obese in these specific years do not differ dramatically.\
+Because the odds ratios are near 1, there is likely no strong evidence that obesity prevalence changed significantly across these years. Any differences (e.g., 0.96 vs. 1.04) are quite small and may not be statistically or practically meaningful.
+
+## Differences
+>>>>>>> Stashed changes
 
 We can attempt to fit a logistic regression model to the data set. With the `stepAIC` function from the `MASS` library, we can perform stepwise model selection to help decide which predictors to include in our GLM.
 
@@ -251,12 +318,34 @@ print(model_1$formula)
 From this, we see that one potential model fit would be to include the variables Age, Education, and Veg in our GLM. We can also use the `regsubsets` function from the `leaps` package, specifying that evaluations are to be carried out with the Mallow's CP criterion
 
 ```{r}
+<<<<<<< Updated upstream
+=======
+#| label: fig-diff-cp-plot
+#| fig-cap: Mallow's CP output
+#| fig-width: 5
+#| fig-height: 2
+#| fig-align: center
+#| message: false
+
+>>>>>>> Stashed changes
 model_1 <- glm(Obese ~ Age + Education + Veg,
                family = binomial,
                data = data)
 
+<<<<<<< Updated upstream
 models <- leaps::regsubsets(Obese ~ . , data = data)
 plot(models, scale = "Cp")
+=======
+#Can't change x labels in regsubsets plot, so making new data set w diff. names
+
+data2 <- data
+levels(data2$Education) <- c("Degree+", "Higher", "HNC/D", 
+                             "None", "Other", "Standard")
+colnames(data2)[3] <- "Ed" 
+
+models <- leaps::regsubsets(Obese ~ . , data = data2)
+plot(models, scale = "Cp", fig.dim = c(2, 0.67))
+>>>>>>> Stashed changes
 ```
 
 As these two processes are in agreement, we fit the following model to investigate potential differences in obesity levels by age, socio-economic status or lifestyle factors.
@@ -315,6 +404,12 @@ We can examine our model's predictive performance by first examining the below p
 #| label: fig-diff-pred-plot
 #| fig-cap: Predictive plots of obesity against each explanatory variable
 #| fig-cap-location: top
+<<<<<<< Updated upstream
+=======
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+>>>>>>> Stashed changes
 
 pred_plot_age <- plot_model(model_1, 
            type = "pred", 
@@ -366,6 +461,12 @@ Continuing, we can also further investigate the performance of our model by plot
 #| label: fig-diff-roc-plot
 #| fig-cap: ROC curve of our classification model
 #| fig-cap-location: top
+<<<<<<< Updated upstream
+=======
+#| fig-width: 5
+#| fig-height: 2.5
+#| fig-align: center
+>>>>>>> Stashed changes
 
 model_1_pred <- model_1 %>%
   augment(type.predict = c("response"))
@@ -420,6 +521,21 @@ model_pred_0.269 <- model_1_pred %>%
 
 eval_metric <- metric_set(accuracy,sensitivity,specificity,ppv,npv)
 
+<<<<<<< Updated upstream
+=======
+```
+
+```{r}
+#| label: tbl-diff-mod-evals
+#| tbl-cap: Confusion matrix and predictive performance metrics for our model at a threshold of 0.269
+#| tbl-cap-location: top
+#| message: false
+#| layout-ncol: 2
+
+#Can't get these plots to render side-by-side 
+
+
+>>>>>>> Stashed changes
 conf_mat(model_pred_0.269, 
          truth = Obese, 
          estimate = predicted_class)[[1]] %>%
@@ -451,11 +567,18 @@ eval_metric(model_pred_0.269,
             estimate = predicted_class,  
             event_level = "second") %>% 
   dplyr::select(.metric, .estimate) %>%
+<<<<<<< Updated upstream
   gt() %>%
   cols_label(
     .metric = html("Metric"),
     .estimate = html("Estimate")
   )
+=======
+  pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  kable(format = "html", align = "r")  %>%
+  kable_styling(full_width = FALSE, position = "float_right")
+
+>>>>>>> Stashed changes
 ```
 
 These metrics reveal that our model's true negative rate of prediction is an acceptable level, it struggles to correctly predict when an observation is obese, so our model struggles to differentiate obesity observations based on age, socio-economic status or lifestyle factors.
