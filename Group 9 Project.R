@@ -71,11 +71,18 @@ binned_residuals(model_Sat)
 
 
 
+
+
 library(leaps)
 models <- regsubsets(Obese ~ . , data = df)
 summary(models)
 
-plot(models, scale = "Cp") #says not to include sex, fruit or year
+par(mar = c(6, 4, 5, 2))
+
+
+dev.new(width = 3, height = 3)
+
+plot(models, scale = "Cp", fig.dim = c(3, 1)) #says not to include sex, fruit or year
 plot(models, scale = "bic") 
 plot(models, scale = "adjr2") 
 
@@ -160,9 +167,14 @@ model_1 %>%
 model_1 %>%
   summary()
 
-performance::check_model(model_1, panel = T)
+performance::check_model(model_1) %>%
+  plot() + patchwork::plot_layout(3, 2)
+
+
+
 binned_residuals(model_1)
 
+?check_model
 
 #different models
 #threshold = 0.5
@@ -267,4 +279,36 @@ print("Hello world")
 #add hyperlinks
 #get plots side by side
 #reduce plot size
-#fix colours in prevalence
+
+theme(legend.position="none")
+
+
+conf_mat(model_pred_0.269, 
+         truth = Obese, 
+         estimate = predicted_class)[[1]] %>%
+  as.data.frame() %>%
+  gt() %>%
+  tab_style(
+    style = cell_text(align = "center"),
+    location = cells_body()
+  )
+
+eval_metric(model_pred_0.269,
+            truth = Obese,
+            estimate = predicted_class,
+            event_level = "second") %>% 
+  dplyr::select(.metric, .estimate) %>%
+  kable()
+
+
+
+
+
+
+table.1985 %>%
+  kable("html", align = 'clc', caption = 'Bundesliga, Season 1985/86') %>%
+  kable_styling(full_width = F, position = "float_left")
+
+table.2015 %>%
+  kable("html", align = 'clc', caption = 'Bundesliga, Season 2015/16') %>%
+  kable_styling(full_width = F, position = "right")
